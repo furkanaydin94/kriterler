@@ -79,11 +79,25 @@ const Filters = {
 
     toggleMudurluk(m, e) {
         if (e) e.stopPropagation();
+
         if (AppState.filters.selectedMudurlukler.has(m)) {
+            // Müdürlük seçimi kaldırılıyor - o müdürlüğe ait hizmetleri de kaldır
             AppState.filters.selectedMudurlukler.delete(m);
+            Object.entries(AppState.services).forEach(([sId, srv]) => {
+                if (srv.mudurluk === m) {
+                    AppState.filters.selectedHizmetler.delete(sId);
+                }
+            });
         } else {
+            // Müdürlük seçiliyor - o müdürlüğe ait hizmetleri de seç
             AppState.filters.selectedMudurlukler.add(m);
+            Object.entries(AppState.services).forEach(([sId, srv]) => {
+                if (srv.mudurluk === m) {
+                    AppState.filters.selectedHizmetler.add(sId);
+                }
+            });
         }
+
         this.renderDropdowns();
         this.updateNodeHighlights();
     },
@@ -93,9 +107,15 @@ const Filters = {
         Object.values(AppState.services).forEach(s => all.add(s.mudurluk));
 
         if (AppState.filters.selectedMudurlukler.size === all.size) {
+            // Tümünü kaldır - hizmetleri de temizle
             AppState.filters.selectedMudurlukler.clear();
+            AppState.filters.selectedHizmetler.clear();
         } else {
+            // Tümünü seç - tüm hizmetleri de seç
             AppState.filters.selectedMudurlukler = all;
+            Object.keys(AppState.services).forEach(sId => {
+                AppState.filters.selectedHizmetler.add(sId);
+            });
         }
         this.renderDropdowns();
         this.updateNodeHighlights();
