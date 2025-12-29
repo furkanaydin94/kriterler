@@ -427,7 +427,38 @@ const Modal = {
         // Filter out hidden columns
         targetServiceIds = targetServiceIds.filter(id => !AppState.filters.hiddenColumns.has(id));
 
+        // FOCUS MODE: If a row is selected, filter rules to show ONLY that row or group
+        if (AppState.modal.activeRowFilter) {
+            const filterId = AppState.modal.activeRowFilter;
+
+            // Check if it's a specific rule filter or a group filter
+            if (filterId.startsWith('ustgrup-')) {
+                const targetUg = filterId.replace('ustgrup-', '');
+                rules = rules.filter(r => r.ustGrup === targetUg);
+            } else if (filterId.startsWith('grupetiket-')) {
+                // Parse group id: grupetiket-{UG}-{GE}
+                // Careful: UG might contain dashes, so we should filter based on data attributes or logic
+                // Simpler: Use the previously stored rowFilterRules if available
+                if (AppState.modal.rowFilterRules) {
+                    rules = AppState.modal.rowFilterRules;
+                }
+            } else {
+                // Rule ID filter
+                // Use stored rules directly for precision
+                if (AppState.modal.rowFilterRules) {
+                    rules = AppState.modal.rowFilterRules;
+                } else {
+                    // Fallback
+                    rules = rules.filter(r =>
+                        (r.id === filterId) ||
+                        (`${r.ustGrup}-${r.grupEtiketi}-${r.durum}` === filterId)
+                    );
+                }
+            }
+        }
+
         // Filter rules to only show rows that have at least one value in the visible services
+        // In Focus Mode, this will naturally help clean up columns that have no data for the selected row
         rules = rules.filter(rule => {
             return targetServiceIds.some(sId => {
                 return rule.values && rule.values[sId] && (rule.values[sId].val || rule.values[sId].type);
@@ -435,10 +466,17 @@ const Modal = {
         });
 
         // Sort rules by fill count (most filled first)
+        // AND add secondary sort by content to ensure stability (prevent jumping rows)
         rules = rules.slice().sort((a, b) => {
             const countA = Object.values(a.values || {}).filter(v => v && (v.val || v.type)).length;
             const countB = Object.values(b.values || {}).filter(v => v && (v.val || v.type)).length;
-            return countB - countA;
+
+            if (countB !== countA) return countB - countA;
+
+            // Secondary sort: Content for stability
+            const textA = (a.ustGrup || '') + (a.grupEtiketi || '') + (a.durum || '');
+            const textB = (b.ustGrup || '') + (b.grupEtiketi || '') + (b.durum || '');
+            return textA.localeCompare(textB);
         });
 
         // Update hidden columns panel
@@ -568,21 +606,51 @@ const Modal = {
         this.renderTable(AppState.ui.currentModalNodeId);
     },
 
-    // Toggle row filter - show only columns with values for this row
-    toggleRowFilter(rowIndex, rules) {
-        const rowKey = `row-${rowIndex}`;
-        if (AppState.modal.activeRowFilter === rowKey) {
-            // Clear filter
+    // Toggle row focus mode - hide all other rows
+    toggleRowFilter(ruleId, rules) {
+        const tableContainer = document.querySelector('#comparison-modal .overflow-auto');
+
+        if (AppState.modal.activeRowFilter === ruleId) {
+            // DE-ACTIVATE FOCUS MODE
             AppState.modal.activeRowFilter = null;
             AppState.modal.rowFilterRules = null;
+
+            // Re-render full table
+            this.renderTable(AppState.ui.currentModalNodeId);
+
+            // Restore scroll to the previously focused element if possible
+            requestAnimationFrame(() => {
+                if (tableContainer && this._lastScrollTop !== undefined) {
+                    tableContainer.scrollTop = this._lastScrollTop;
+                }
+                // Highlight the previously active row briefly to help user locate it
+                const row = document.querySelector(`[data-rule-id="${ruleId}"], [data-group-id="${ruleId}"]`);
+                if (row) {
+                    row.classList.add('bg-amber-50');
+                    setTimeout(() => row.classList.remove('bg-amber-50'), 1500);
+                }
+            });
+
         } else {
-            // Set filter
-            AppState.modal.activeRowFilter = rowKey;
+            // ACTIVATE FOCUS MODE
+
+            // Save current scroll position before entering focus mode
+            if (tableContainer) {
+                this._lastScrollTop = tableContainer.scrollTop;
+            }
+
+            AppState.modal.activeRowFilter = ruleId;
             AppState.modal.rowFilterRules = rules;
+
+            // Clear column filter
+            AppState.modal.activeColumnFilter = null;
+
+            // Render table - renderTable will handle showing only the selected row
+            this.renderTable(AppState.ui.currentModalNodeId);
+
+            // Scroll to top in focus mode
+            if (tableContainer) tableContainer.scrollTop = 0;
         }
-        // Clear column filter when row filter changes
-        AppState.modal.activeColumnFilter = null;
-        this.renderTable(AppState.ui.currentModalNodeId);
     },
 
     groupRulesByDetailLevel(rules) {
@@ -649,10 +717,11 @@ const Modal = {
 
     // Üst Grup row - shows only counts
     renderUstGrupRow(tbody, ug, rules, serviceIds, rowIndex, ugIndex) {
-        const isActive = AppState.modal.activeRowFilter === `row-${rowIndex}`;
+        const groupId = `ustgrup-${ug}`;
+        const isActive = AppState.modal.activeRowFilter === groupId;
         const row = document.createElement('tr');
         row.className = `border-b border-slate-100 ${isActive ? 'bg-amber-50' : 'hover:bg-purple-50/50'}`;
-        row.setAttribute('data-row-id', `row-${rowIndex}`);
+        row.setAttribute('data-group-id', groupId);
 
         // Count grup etiketis
         const grupCount = Object.keys(rules.reduce((acc, r) => { acc[r.grupEtiketi || 'Genel'] = true; return acc; }, {})).length;
@@ -673,11 +742,11 @@ const Modal = {
 
         row.innerHTML = html;
 
-        // Click to toggle row filter
+        // Click to toggle row filter using group ID
         const firstCell = row.querySelector('td:first-child');
         if (firstCell) {
             firstCell.addEventListener('click', () => {
-                Modal.toggleRowFilter(rowIndex, rules);
+                Modal.toggleRowFilter(groupId, rules);
             });
         }
 
@@ -686,10 +755,11 @@ const Modal = {
 
     // Grup Etiketi flat row - shows all durums in cell
     renderGrupEtiketFlatRow(tbody, ug, ge, rules, serviceIds, rowIndex, ugIndex) {
-        const isActive = AppState.modal.activeRowFilter === `row-${rowIndex}`;
+        const groupId = `grupetiket-${ug}-${ge}`;
+        const isActive = AppState.modal.activeRowFilter === groupId;
         const row = document.createElement('tr');
         row.className = `border-b border-slate-100 ${isActive ? 'bg-amber-50' : 'hover:bg-slate-50'}`;
-        row.setAttribute('data-row-id', `row-${rowIndex}`);
+        row.setAttribute('data-group-id', groupId);
 
         const durumCount = rules.length;
 
@@ -709,11 +779,11 @@ const Modal = {
 
         row.innerHTML = html;
 
-        // Click to toggle row filter
+        // Click to toggle row filter using group ID
         const firstCell = row.querySelector('td:first-child');
         if (firstCell) {
             firstCell.addEventListener('click', () => {
-                Modal.toggleRowFilter(rowIndex, rules);
+                Modal.toggleRowFilter(groupId, rules);
             });
         }
 
@@ -722,10 +792,11 @@ const Modal = {
 
     // Durum flat row - single durum per row
     renderDurumFlatRow(tbody, ug, ge, rule, serviceIds, rowIndex, ugIndex) {
-        const isActive = AppState.modal.activeRowFilter === `row-${rowIndex}`;
+        const ruleId = rule.id || `${ug}-${ge}-${rule.durum || rowIndex}`;
+        const isActive = AppState.modal.activeRowFilter === ruleId;
         const row = document.createElement('tr');
         row.className = `border-b border-slate-100 ${isActive ? 'bg-amber-50' : 'hover:bg-slate-50'}`;
-        row.setAttribute('data-row-id', `row-${rowIndex}`);
+        row.setAttribute('data-rule-id', ruleId);
 
         const durum = rule.durum || rule.grupEtiketi || '';
 
@@ -746,11 +817,11 @@ const Modal = {
 
         row.innerHTML = html;
 
-        // Click to toggle row filter
+        // Click to toggle row filter using rule ID
         const firstCell = row.querySelector('td:first-child');
         if (firstCell) {
             firstCell.addEventListener('click', () => {
-                Modal.toggleRowFilter(rowIndex, [rule]);
+                Modal.toggleRowFilter(ruleId, [rule]);
             });
         }
 
