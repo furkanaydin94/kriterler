@@ -464,6 +464,9 @@ const Modal = {
             // Filter by Mudurluk (header level)
             if (AppState.filters.selectedMudurlukler.size > 0 &&
                 !AppState.filters.selectedMudurlukler.has(srv.mudurluk)) return false;
+            // Filter by Hizmet (header level) - if specific services are selected
+            if (AppState.filters.selectedHizmetler.size > 0 &&
+                !AppState.filters.selectedHizmetler.has(sId)) return false;
             // Filter by Method
             if (AppState.ui.activeMethodFilter &&
                 !srv.path.includes(AppState.ui.activeMethodFilter)) return false;
