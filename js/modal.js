@@ -756,11 +756,18 @@ const Modal = {
 
         tbody.appendChild(row);
     },
-
     // Render combined cell content for Grup Etiketi level - shows each durum with its values
     renderCombinedCellContent(rules, sId) {
         const items = rules
             .filter(rule => rule.values && rule.values[sId] && (rule.values[sId].val || rule.values[sId].type))
+            .filter(rule => {
+                // Apply Tür filter to individual values
+                if (AppState.modal.selectedModalTurler?.size > 0) {
+                    const v = rule.values[sId];
+                    return v.type && AppState.modal.selectedModalTurler.has(v.type);
+                }
+                return true;
+            })
             .map(rule => {
                 const v = rule.values[sId];
                 const durum = rule.durum || rule.grupEtiketi || '';
@@ -873,6 +880,13 @@ const Modal = {
 
     renderCellContent(cellData) {
         if (!cellData || (!cellData.val && !cellData.type)) return '';
+
+        // Check if cell type matches Tür filter (if filter is active)
+        if (AppState.modal.selectedModalTurler?.size > 0) {
+            if (!cellData.type || !AppState.modal.selectedModalTurler.has(cellData.type)) {
+                return ''; // Hide cell content if type doesn't match filter
+            }
+        }
 
         let content = '<div class="cell-data space-y-0.5">';
 
