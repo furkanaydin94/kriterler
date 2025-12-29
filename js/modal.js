@@ -421,18 +421,25 @@ const Modal = {
             });
         }
 
+        // Get target services
+        let targetServiceIds = this.getTargetServicesForModal(nodeId);
+
+        // Filter out hidden columns
+        targetServiceIds = targetServiceIds.filter(id => !AppState.filters.hiddenColumns.has(id));
+
+        // Filter rules to only show rows that have at least one value in the visible services
+        rules = rules.filter(rule => {
+            return targetServiceIds.some(sId => {
+                return rule.values && rule.values[sId] && (rule.values[sId].val || rule.values[sId].type);
+            });
+        });
+
         // Sort rules by fill count (most filled first)
         rules = rules.slice().sort((a, b) => {
             const countA = Object.values(a.values || {}).filter(v => v && (v.val || v.type)).length;
             const countB = Object.values(b.values || {}).filter(v => v && (v.val || v.type)).length;
             return countB - countA;
         });
-
-        // Get target services
-        let targetServiceIds = this.getTargetServicesForModal(nodeId);
-
-        // Filter out hidden columns
-        targetServiceIds = targetServiceIds.filter(id => !AppState.filters.hiddenColumns.has(id));
 
         // Update hidden columns panel
         this.updateHiddenColumnsPanel();
