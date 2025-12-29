@@ -1,0 +1,166 @@
+/* Matrix Table Styles */
+
+.matrix-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: max-content;
+    min-width: 100%;
+}
+
+.matrix-table th {
+    background: #f8fafc;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    padding: 12px 16px;
+    border-bottom: 2px solid #e2e8f0;
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748b;
+    text-align: left;
+    white-space: nowrap;
+    min-width: 160px;
+}
+
+/* First column header - sticky both horizontally and vertically */
+.matrix-table th:first-child {
+    position: sticky;
+    left: 0;
+    top: 0;
+    z-index: 30;
+    background: #f8fafc;
+    border-right: 2px solid #e2e8f0;
+    width: 280px;
+    min-width: 280px;
+    max-width: 280px;
+}
+
+.matrix-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: top;
+    white-space: normal;
+    min-width: 160px;
+    min-height: 48px;
+    height: 48px;
+}
+
+/* First column cells - sticky horizontally */
+.matrix-table td:first-child {
+    position: sticky;
+    left: 0;
+    background: white;
+    z-index: 10;
+    border-right: 2px solid #e2e8f0;
+    width: 280px;
+    min-width: 280px;
+    max-width: 280px;
+    min-height: 48px;
+    height: 48px;
+}
+
+/* Row Colors for Hierarchy */
+.row-ustgrup {
+    background: var(--secondary);
+}
+
+/* V4-style Üst Grup color variants */
+.row-ustgrup-1 {
+    border-left: 3px solid #3b82f6;
+    background: #f8faff !important;
+}
+
+.row-ustgrup-2 {
+    border-left: 3px solid #10b981;
+    background: #f6fdf9 !important;
+}
+
+.row-ustgrup-3 {
+    border-left: 3px solid #f59e0b;
+    background: #fffbf5 !important;
+}
+
+.row-ustgrup-4 {
+    border-left: 3px solid #8b5cf6;
+    background: #faf8ff !important;
+}
+
+.row-ustgrup-5 {
+    border-left: 3px solid #14b8a6;
+    background: #f5fdfc !important;
+}
+
+.row-ustgrup-6 {
+    border-left: 3px solid #f97316;
+    background: #fff9f5 !important;
+}
+
+.row-ustgrup-7 {
+    border-left: 3px solid #ec4899;
+    background: #fdf5f9 !important;
+}
+
+.row-ustgrup-8 {
+    border-left: 3px solid #06b6d4;
+    background: #f5fcfd !important;
+}
+
+.row-grupetiket {
+    background: #ffffff;
+}
+
+.row-durum {
+    background: #ffffff;
+}
+
+/* Cell Data Visualization */
+.cell-data {
+    font-size: 12px;
+}
+
+.status-text {
+    font-weight: 600;
+    color: var(--foreground);
+    margin-bottom: 4px;
+}
+
+.row-inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 11px;
+}
+
+.data-val {
+    color: var(--foreground);
+    background: var(--secondary);
+    padding: 1px 4px;
+    border-radius: 3px;
+}
+
+.data-type {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.data-proc {
+    color: var(--muted-foreground);
+    font-style: italic;
+}
+
+/* Hierarchy Indentation & Icons */
+.criteria-text {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.toggle-icon {
+    font-size: 10px;
+    color: var(--muted-foreground);
+    transition: transform 0.2s;
+}
+
+.toggle-icon.expanded {
+    transform: rotate(90deg);
+}

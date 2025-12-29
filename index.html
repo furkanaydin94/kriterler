@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kriter Analizi v5 - Canvas</title>
+
+    <!-- External Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind Config to match v4 colors -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        border: 'var(--border)',
+                        background: 'var(--background)',
+                        foreground: 'var(--foreground)',
+                        primary: {
+                            DEFAULT: 'var(--primary)',
+                            foreground: 'var(--primary-foreground)',
+                        },
+                        secondary: {
+                            DEFAULT: 'var(--secondary)',
+                            foreground: 'var(--secondary-foreground)',
+                        },
+                        accent: {
+                            DEFAULT: 'var(--accent)',
+                            foreground: 'var(--accent-foreground)',
+                        },
+                        muted: {
+                            DEFAULT: 'var(--muted)',
+                            foreground: 'var(--muted-foreground)',
+                        },
+                        card: {
+                            DEFAULT: 'var(--card)',
+                            foreground: 'var(--card-foreground)',
+                        }
+                    },
+                    borderRadius: {
+                        lg: 'var(--radius)',
+                        md: 'calc(var(--radius) - 2px)',
+                        sm: 'calc(var(--radius) - 4px)',
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Internal Styles -->
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/canvas.css">
+    <link rel="stylesheet" href="css/nodes.css">
+    <link rel="stylesheet" href="css/connections.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/table.css">
+
+</head>
+
+<body class="bg-slate-50 text-slate-900 font-sans overflow-hidden select-none">
+    <!-- Header -->
+    <header id="app-header"
+        class="h-[60px] bg-white border-b border-gray-200 flex items-center justify-between px-6 z-50 relative shadow-sm">
+        <div class="flex items-center gap-6">
+            <h1 class="text-xl font-black tracking-tighter text-slate-800 italic uppercase cursor-pointer"
+                onclick="window.location.reload()">
+                Kriter <span class="text-blue-600">Analizi</span>
+            </h1>
+        </div>
+
+        <div id="workflow-selector-container" class="flex items-center gap-3">
+            <!-- Müdürlük Seçimi -->
+            <div class="multi-select-dropdown" id="main-mudurluk-dropdown">
+                <div class="dropdown-trigger">
+                    <span id="main-mudurluk-text">Müdürlük</span>
+                    <span class="badge" id="main-mudurluk-count">0</span>
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="dropdown-menu" id="main-mudurluk-menu">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- Hizmet Seçimi -->
+            <div class="multi-select-dropdown" id="main-hizmet-dropdown">
+                <div class="dropdown-trigger">
+                    <span id="main-hizmet-text">Hizmet</span>
+                    <span class="badge" id="main-hizmet-count">0</span>
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="dropdown-menu" id="main-hizmet-menu">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <div class="w-px h-6 bg-slate-300 mx-2"></div>
+
+            <!-- Tools Button with Dropdown -->
+            <div class="relative">
+                <button onclick="toggleToolbar()" class="icon-btn" title="Araçlar">
+                    <span>🛠️</span>
+                </button>
+
+                <!-- Toolbar Menu (positioned below button) -->
+                <div id="toolbar-menu"
+                    class="hidden absolute right-0 top-full mt-2 bg-white p-2 rounded-xl shadow-lg border border-slate-200 flex flex-col gap-1 min-w-[160px] z-50">
+                    <!-- Node Type Submenu -->
+                    <div class="relative group">
+                        <button class="toolbar-btn-wide" title="Yeni Ekle">
+                            <span class="text-base">➕</span>
+                            <span class="text-xs font-semibold">Yeni Ekle</span>
+                            <span class="ml-auto text-[10px]">◀</span>
+                        </button>
+                        <div
+                            class="hidden group-hover:flex absolute right-full top-0 mr-1 bg-white p-1 rounded-lg shadow-lg border border-slate-200 flex-col gap-1 min-w-[140px]">
+                            <button onclick="addNewNode('process')" class="toolbar-btn-wide text-left">
+                                <span>📦</span> <span class="text-xs">Süreç Kutusu</span>
+                            </button>
+                            <button onclick="addNewNode('hub')" class="toolbar-btn-wide text-left">
+                                <span>⭕</span> <span class="text-xs">Yöntem (Daire)</span>
+                            </button>
+                            <button onclick="addNewNode('method')" class="toolbar-btn-wide text-left">
+                                <span>🏷️</span> <span class="text-xs">Filtre Kutusu</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <hr class="border-slate-100 my-1">
+
+                    <!-- Connection Mode -->
+                    <button id="toggle-connect-mode" class="toolbar-btn-wide" title="Bağlantı Modu"
+                        onclick="toggleConnectionMode()">
+                        <span class="text-base">🔗</span>
+                        <span class="text-xs font-semibold">Bağlantı Modu</span>
+                    </button>
+
+                    <hr class="border-slate-100 my-1">
+
+                    <!-- Import/Export Submenu -->
+                    <div class="relative group">
+                        <button class="toolbar-btn-wide" title="İçe/Dışa Aktar">
+                            <span class="text-base">📁</span>
+                            <span class="text-xs font-semibold">Veri İşlemleri</span>
+                            <span class="ml-auto text-[10px]">◀</span>
+                        </button>
+                        <div
+                            class="hidden group-hover:flex absolute right-full top-0 mr-1 bg-white p-1 rounded-lg shadow-lg border border-slate-200 flex-col gap-1 min-w-[180px]">
+                            <label class="toolbar-btn-wide text-left cursor-pointer">
+                                <span>📥</span> <span class="text-xs">Kendi Excel'ini Yükle</span>
+                                <input type="file" accept=".xlsx,.xls" id="import-excel-input" class="hidden">
+                            </label>
+                            <button onclick="exportToExcel()" class="toolbar-btn-wide text-left">
+                                <span>📤</span> <span class="text-xs">Excel Dışa Aktar</span>
+                            </button>
+                            <hr class="border-slate-100 my-1">
+                            <button id="reload-data-btn" class="toolbar-btn-wide text-left text-blue-600">
+                                <span>🔄</span> <span class="text-xs">Varsayılan Veriyi Yükle</span>
+                            </button>
+                            <button id="clear-data-btn" class="toolbar-btn-wide text-left text-red-600">
+                                <span>🗑️</span> <span class="text-xs">Verileri Temizle</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="toggleRealFullscreen()" class="icon-btn" title="Tam Ekran">
+                <span>⛶</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Canvas Area -->
+    <main id="view-workflow" class="relative w-full h-[calc(100vh-60px)] overflow-hidden bg-slate-50">
+        <!-- Zoom Controls -->
+        <div
+            class="absolute bottom-4 right-4 z-40 flex gap-1 bg-white p-1 rounded-lg border border-slate-200 shadow-sm">
+            <button id="zoom-out"
+                class="w-8 h-8 flex items-center justify-center hover:bg-slate-100 rounded text-slate-600 font-bold">-</button>
+            <span id="zoom-level"
+                class="w-12 flex items-center justify-center text-xs font-mono text-slate-500">100%</span>
+            <button id="zoom-in"
+                class="w-8 h-8 flex items-center justify-center hover:bg-slate-100 rounded text-slate-600 font-bold">+</button>
+        </div>
+
+        <!-- Canvas Container -->
+        <div id="main-container" class="w-full h-full overflow-auto relative cursor-grab active:cursor-grabbing">
+            <div id="chart-container" class="absolute top-0 left-0 w-[5000px] h-[5000px] origin-top-left">
+                <!-- Grid Background -->
+                <div class="grid-background absolute inset-0 pointer-events-none"></div>
+
+                <!-- SVG Layer for Connections -->
+                <svg id="connector-lines"
+                    class="absolute top-0 left-0 w-full h-full pointer-events-none z-0 overflow-visible"></svg>
+
+                <!-- Nodes will be injected here -->
+                <div id="nodes-layer" class="z-10 relative w-full h-full"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Management View -->
+    <main id="view-management" class="hidden h-[calc(100vh-60px)] overflow-y-auto p-8 bg-slate-100">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Edit Form -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 h-fit sticky top-0">
+                <h3 id="mgmt-form-title" class="text-sm font-black text-slate-400 uppercase tracking-widest mb-6">İş
+                    Akışı Yapılandır</h3>
+                <!-- Form Content -->
+                <div class="space-y-4">
+                    <input type="hidden" id="edit-service-id">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">Hizmet Adı</label>
+                        <input type="text" id="srv-name-input"
+                            class="w-full p-2 border border-slate-300 rounded-lg text-sm font-semibold focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">Müdürlük</label>
+                        <select id="srv-mudurluk-input"
+                            class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value="Genel">Genel</option>
+                        </select>
+                    </div>
+                    <div id="path-selection-container" class="space-y-2 pt-2 border-t border-slate-100">
+                        <!-- Checkboxes for path -->
+                    </div>
+                    <div class="flex gap-2 pt-2">
+                        <button onclick="saveServiceForm()"
+                            class="flex-1 bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700 transition">Kaydet</button>
+                        <button onclick="resetServiceForm()"
+                            class="px-4 bg-slate-200 text-slate-600 rounded-lg font-bold hover:bg-slate-300 transition">İptal</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Service List -->
+            <div class="lg:col-span-2 space-y-4">
+                <div class="flex gap-2 justify-end">
+                    <button onclick="exportServicesToExcel()"
+                        class="px-4 py-2 bg-green-600 text-white font-bold rounded-lg text-sm hover:bg-green-700 shadow-sm flex items-center gap-2">
+                        <span>📊</span> Excel İndir
+                    </button>
+                    <label
+                        class="px-4 py-2 bg-white border border-slate-300 text-slate-700 font-bold rounded-lg text-sm hover:bg-slate-50 shadow-sm cursor-pointer flex items-center gap-2">
+                        <span>📂</span> Excel Yükle
+                        <input type="file" id="import-excel-input" class="hidden" accept=".xlsx"
+                            onchange="handleExcelImport(event)">
+                    </label>
+                </div>
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 border-b border-slate-200">
+                            <tr>
+                                <th class="p-4 text-xs font-black text-slate-400 uppercase">Hizmet</th>
+                                <th class="p-4 text-xs font-black text-slate-400 uppercase">Müdürlük</th>
+                                <th class="p-4 text-xs font-black text-slate-400 uppercase text-right">İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mgmt-service-list" class="divide-y divide-slate-100 text-sm">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Comparison Modal -->
+    <div id="comparison-modal"
+        class="fixed inset-0 z-[100] bg-black/50 hidden items-center justify-center p-4 backdrop-blur-sm">
+        <div
+            class="bg-white rounded-2xl shadow-2xl w-full max-w-[95vw] h-[90vh] flex flex-col overflow-hidden relative border border-slate-200">
+            <!-- Modal Header -->
+            <div
+                class="min-h-[60px] border-b border-slate-100 flex items-center justify-between px-6 bg-slate-50/50 flex-wrap gap-2 py-2">
+                <div class="flex items-center gap-4 flex-wrap">
+                    <h2 id="modal-title" class="text-lg font-black text-slate-800">KARŞILAŞTIRMA</h2>
+                    <div class="h-6 w-px bg-slate-300 hidden md:block"></div>
+
+                    <!-- Detail Level Selector -->
+                    <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
+                        <button onclick="Modal.setDetailLevel('ustgrup')" id="btn-level-ustgrup"
+                            class="px-3 py-1 text-xs font-bold rounded transition hover:bg-white text-slate-500">
+                            Üst Grup
+                        </button>
+                        <button onclick="Modal.setDetailLevel('grupetiket')" id="btn-level-grupetiket"
+                            class="px-3 py-1 text-xs font-bold rounded transition hover:bg-white text-slate-500">
+                            Grup Etiketi
+                        </button>
+                        <button onclick="Modal.setDetailLevel('durum')" id="btn-level-durum"
+                            class="px-3 py-1 text-xs font-bold rounded transition bg-white shadow-sm text-blue-600">
+                            Durum
+                        </button>
+                    </div>
+
+                    <div class="h-6 w-px bg-slate-300 hidden lg:block"></div>
+
+                    <!-- Show Options -->
+                    <div class="flex items-center gap-2 text-xs">
+                        <span class="text-slate-400 font-medium">Göster:</span>
+                        <label class="inline-flex items-center gap-1 cursor-pointer">
+                            <input type="checkbox" id="show-deger" checked onchange="Modal.toggleShowOption('deger')"
+                                class="w-3 h-3 rounded border-slate-300 text-blue-600">
+                            <span class="text-slate-600">Değer</span>
+                        </label>
+                        <label class="inline-flex items-center gap-1 cursor-pointer">
+                            <input type="checkbox" id="show-tur" checked onchange="Modal.toggleShowOption('tur')"
+                                class="w-3 h-3 rounded border-slate-300 text-blue-600">
+                            <span class="text-slate-600">Tür</span>
+                        </label>
+                        <label class="inline-flex items-center gap-1 cursor-pointer">
+                            <input type="checkbox" id="show-islem" checked onchange="Modal.toggleShowOption('islem')"
+                                class="w-3 h-3 rounded border-slate-300 text-blue-600">
+                            <span class="text-slate-600">İşlem</span>
+                        </label>
+                    </div>
+
+                    <div class="h-6 w-px bg-slate-300 hidden xl:block"></div>
+
+                    <!-- Filter Dropdowns (Dynamic) -->
+                    <div id="modal-filters" class="flex items-center gap-2"></div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button onclick="Modal.exportToExcel()"
+                        class="px-3 py-1.5 bg-green-600 text-white text-xs font-bold rounded-lg hover:bg-green-700 flex items-center gap-1 shadow-sm">
+                        <span>📊</span> Excel
+                    </button>
+                    <button onclick="toggleModalFullscreen()"
+                        class="p-2 hover:bg-slate-200 rounded-full transition text-slate-500" title="Tam Ekran">
+                        ⛶
+                    </button>
+                    <button onclick="closeModal()"
+                        class="p-2 hover:bg-red-100 hover:text-red-600 rounded-full transition text-slate-400 font-bold text-xl leading-none">
+                        ✕
+                    </button>
+                </div>
+            </div>
+
+            <!-- Matrix Content - Full height flex container -->
+            <div class="flex-1 flex flex-col overflow-hidden bg-slate-50/30 p-4">
+                <!-- Active Filter Indicator -->
+                <div id="active-filter-indicator"
+                    class="hidden mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+                    <span id="filter-indicator-text"></span>
+                    <button onclick="Modal.clearAllFilters()"
+                        class="ml-2 text-amber-600 underline hover:text-amber-800 font-medium">Temizle</button>
+                </div>
+
+                <div id="common-rules-container" class="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                </div>
+
+                <!-- Table Scroll Container - full available height -->
+                <div id="matrix-scroll-container"
+                    class="flex-1 bg-white border border-slate-200 rounded-xl shadow-sm overflow-auto">
+                    <table class="matrix-table">
+                        <thead id="matrix-head" class="bg-slate-50 sticky top-0 z-20">
+                        </thead>
+                        <tbody id="matrix-body" class="text-sm">
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Hidden Columns Panel -->
+                <div id="hidden-columns-panel"
+                    class="hidden fixed bottom-4 left-1/2 -translate-x-1/2 bg-white border border-slate-200 rounded-xl shadow-lg p-4 z-30">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-xs font-bold text-slate-500">Gizlenen Sütunlar:</span>
+                    </div>
+                    <div id="hidden-columns-list" class="flex flex-wrap gap-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Node Edit Modal -->
+    <div id="node-edit-modal"
+        class="hidden fixed inset-0 z-[110] items-center justify-center bg-black/20 backdrop-blur-[1px]">
+        <div
+            class="bg-white p-6 rounded-2xl shadow-2xl border border-slate-200 w-[400px] transform transition-all scale-100">
+            <h3 class="font-bold text-lg mb-4 text-slate-800">Node Düzenle</h3>
+            <input type="hidden" id="node-edit-id">
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">Başlık</label>
+                    <input type="text" id="node-edit-title"
+                        class="w-full p-2 border rounded-lg outline-none focus:border-blue-500">
+                </div>
+                <div class="flex justify-end gap-2 mt-4">
+                    <button onclick="closeNodeEditModal()"
+                        class="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded-lg font-bold text-sm">İptal</button>
+                    <button onclick="saveNodeEdit()"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg font-bold text-sm hover:bg-blue-700 shadow-md">Kaydet</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/state.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/canvas.js"></script>
+    <script src="js/nodes.js"></script>
+    <script src="js/connections.js"></script>
+    <script src="js/filters.js"></script>
+    <script src="js/modal.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,164 @@
+/* Layout Styles */
+
+/* Header Navigation */
+header {
+    backdrop-filter: blur(8px);
+}
+
+.nav-btn {
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted-foreground);
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.nav-btn:hover {
+    color: var(--foreground);
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.nav-btn.active {
+    color: var(--primary);
+    background: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Icon Button */
+.icon-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    color: var(--muted-foreground);
+    transition: all 0.2s;
+}
+
+.icon-btn:hover {
+    background: var(--secondary);
+    color: var(--foreground);
+}
+
+/* Management View Layout */
+#view-management {
+    background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
+}
+
+#view-management h3 {
+    letter-spacing: 0.05em;
+}
+
+#view-management input,
+#view-management select {
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+#view-management input:focus,
+#view-management select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Modal Backdrop */
+#comparison-modal,
+#node-edit-modal {
+    transition: opacity 0.2s;
+}
+
+#comparison-modal>div,
+#node-edit-modal>div {
+    animation: modalSlideIn 0.2s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Fullscreen Toggle */
+.fullscreen #app-header {
+    display: none;
+}
+
+.fullscreen #view-workflow,
+.fullscreen #view-management {
+    height: 100vh;
+}
+
+/* Notification Toast (Optional) */
+.notification-toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--foreground);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 9999;
+    animation: toastFadeIn 0.3s ease-out;
+}
+
+@keyframes toastFadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, 10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1024px) {
+    #workflow-selector-container {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .multi-select-dropdown {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 768px) {
+    header {
+        padding: 0 12px;
+    }
+
+    header h1 {
+        font-size: 16px;
+    }
+
+    #canvas-toolbar {
+        left: 8px;
+        top: 8px;
+    }
+
+    .toolbar-btn {
+        width: 36px;
+        height: 36px;
+    }
+}

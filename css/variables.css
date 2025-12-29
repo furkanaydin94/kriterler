@@ -1,0 +1,64 @@
+:root {
+    /* Color Palette - Based on Tailwind Slate & Blue */
+    --background: #ffffff;
+    --foreground: #0f172a; /* slate-900 */
+    
+    --card: #ffffff;
+    --card-foreground: #0f172a;
+    
+    --popover: #ffffff;
+    --popover-foreground: #0f172a;
+    
+    --primary: #2563eb; /* blue-600 */
+    --primary-foreground: #ffffff;
+    
+    --secondary: #f1f5f9; /* slate-100 */
+    --secondary-foreground: #1e293b; /* slate-800 */
+    
+    --muted: #f8fafc; /* slate-50 */
+    --muted-foreground: #64748b; /* slate-500 */
+    
+    --accent: #eff6ff; /* blue-50 */
+    --accent-foreground: #1d4ed8; /* blue-700 */
+    
+    --destructive: #ef4444; /* red-500 */
+    --destructive-foreground: #ffffff;
+    
+    --border: #e2e8f0; /* slate-200 */
+    --input: #e2e8f0;
+    --ring: #2563eb;
+    
+    --radius: 0.75rem; /* 12px */
+    
+    --grid-color: rgba(0, 0, 0, 0.04);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
