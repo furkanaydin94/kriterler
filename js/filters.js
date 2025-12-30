@@ -1,59 +1,131 @@
 // Filter System
 
 const Filters = {
+    _initialized: false,  // Flag to prevent duplicate event listeners
+
     init() {
+        // Only setup event listeners once
+        if (!this._initialized) {
+            this._setupEventListeners();
+            this._initialized = true;
+        }
+
+        // Always re-render dropdowns and update highlights
         this.renderDropdowns();
-
-        // Listeners for dropdowns
-        const mDrop = document.getElementById('main-mudurluk-dropdown');
-        mDrop.addEventListener('click', (e) => {
-            // Close others
-            document.querySelectorAll('.dropdown-menu.open').forEach(el => {
-                if (el !== mDrop.querySelector('.dropdown-menu')) el.classList.remove('open');
-            });
-            mDrop.querySelector('.dropdown-menu').classList.toggle('open');
-            e.stopPropagation();
-        });
-
-        const hDrop = document.getElementById('main-hizmet-dropdown');
-        hDrop.addEventListener('click', (e) => {
-            // Close others
-            document.querySelectorAll('.dropdown-menu.open').forEach(el => {
-                if (el !== hDrop.querySelector('.dropdown-menu')) el.classList.remove('open');
-            });
-            hDrop.querySelector('.dropdown-menu').classList.toggle('open');
-            e.stopPropagation();
-        });
-
-        document.addEventListener('click', () => {
-            document.querySelectorAll('.dropdown-menu.open').forEach(el => el.classList.remove('open'));
-        });
-
         this.updateNodeHighlights();
     },
 
+    _setupEventListeners() {
+        // Dropdown toggle listeners (attached once to triggers)
+        const mDrop = document.getElementById('main-mudurluk-dropdown');
+        const mTrigger = mDrop?.querySelector('.dropdown-trigger');
+        if (mTrigger) {
+            mTrigger.addEventListener('click', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                // Close other dropdowns first
+                document.querySelectorAll('.dropdown-menu.open').forEach(el => {
+                    if (el.id !== 'main-mudurluk-menu') el.classList.remove('open');
+                });
+                document.getElementById('main-mudurluk-menu')?.classList.toggle('open');
+            });
+        }
+
+        const hDrop = document.getElementById('main-hizmet-dropdown');
+        const hTrigger = hDrop?.querySelector('.dropdown-trigger');
+        if (hTrigger) {
+            hTrigger.addEventListener('click', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                // Close other dropdowns first
+                document.querySelectorAll('.dropdown-menu.open').forEach(el => {
+                    if (el.id !== 'main-hizmet-menu') el.classList.remove('open');
+                });
+                document.getElementById('main-hizmet-menu')?.classList.toggle('open');
+            });
+        }
+
+        // Global click to close all dropdowns
+        document.addEventListener('click', (e) => {
+            // Don't close if clicking inside a dropdown
+            if (e.target.closest('.multi-select-dropdown')) return;
+            document.querySelectorAll('.dropdown-menu.open').forEach(el => el.classList.remove('open'));
+        });
+
+        // Event delegation for menu items (attached to document, works after re-render)
+        document.addEventListener('click', (e) => {
+            const option = e.target.closest('.dropdown-option');
+            if (!option) return;
+
+            // Check if it's a mudurluk menu item
+            const mMenu = document.getElementById('main-mudurluk-menu');
+            const hMenu = document.getElementById('main-hizmet-menu');
+
+            if (mMenu?.contains(option)) {
+                e.stopPropagation();
+                if (option.dataset.action === 'toggle-all-mudurluk') {
+                    Filters.toggleAllMudurluk();
+                } else if (option.dataset.mudurluk !== undefined) {
+                    Filters.toggleMudurluk(option.dataset.mudurluk);
+                }
+            } else if (hMenu?.contains(option)) {
+                e.stopPropagation();
+                if (option.dataset.action === 'toggle-all-hizmet') {
+                    Filters.toggleAllHizmet();
+                } else if (option.dataset.hizmetId !== undefined) {
+                    Filters.toggleHizmet(option.dataset.hizmetId);
+                }
+            }
+        });
+    },
+
     renderDropdowns() {
-        // Get Unique Mudurluks
+        // Get Unique Mudurluks (filter out empty values)
         const muds = new Set();
         const services = Object.values(AppState.services);
-        services.forEach(s => muds.add(s.mudurluk));
+        services.forEach(s => {
+            // Only add non-empty müdürlük values
+            if (s.mudurluk && s.mudurluk.trim() !== '') {
+                muds.add(s.mudurluk);
+            }
+        });
         const totalMudurluk = muds.size;
         const totalHizmet = services.length;
 
+        // Debug logging
+        console.log('renderDropdowns - Services:', services.length);
+        console.log('renderDropdowns - Müdürlükler:', Array.from(muds));
+        console.log('renderDropdowns - Total Müdürlük:', totalMudurluk);
+
+        // Helper function to escape special characters for data attributes
+        const escapeForHtml = (str) => {
+            if (!str) return '';
+            return str
+                .replace(/\\/g, '\\\\')
+                .replace(/'/g, "\\'")
+                .replace(/"/g, '&quot;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        };
+
         // Mudurluk Menu
         const mMenu = document.getElementById('main-mudurluk-menu');
-        mMenu.innerHTML = `
-            <div class="dropdown-option" onclick="Filters.toggleAllMudurluk()"><strong>Tümünü Seç/Kaldır</strong></div>
-            ${Array.from(muds).sort().map(m => `
-                <div class="dropdown-option ${AppState.filters.selectedMudurlukler.has(m) ? 'selected' : ''}" 
-                     onclick="Filters.toggleMudurluk('${m}', event)">
-                    <span>${m}</span>
-                </div>
-            `).join('')}
-        `;
+        if (mMenu) {
+            mMenu.innerHTML = `
+                <div class="dropdown-option" data-action="toggle-all-mudurluk"><strong>Tümünü Seç/Kaldır</strong></div>
+                ${Array.from(muds).sort().map(m => `
+                    <div class="dropdown-option ${AppState.filters.selectedMudurlukler.has(m) ? 'selected' : ''}" 
+                         data-mudurluk="${escapeForHtml(m)}">
+                        <span>${m}</span>
+                    </div>
+                `).join('')}
+            `;
+        }
+
         // Show total when none selected (tümü seçili)
         const mudCount = AppState.filters.selectedMudurlukler.size === 0 ? totalMudurluk : AppState.filters.selectedMudurlukler.size;
-        document.getElementById('main-mudurluk-count').textContent = mudCount;
+        const mudCountEl = document.getElementById('main-mudurluk-count');
+        if (mudCountEl) mudCountEl.textContent = mudCount;
 
         // Hizmet Menu (Filtered by Mudurluk)
         const hMenu = document.getElementById('main-hizmet-menu');
@@ -61,20 +133,24 @@ const Filters = {
             AppState.filters.selectedMudurlukler.size === 0 || AppState.filters.selectedMudurlukler.has(s.mudurluk)
         );
 
-        hMenu.innerHTML = `
-            <div class="dropdown-option" onclick="Filters.toggleAllHizmet()"><strong>Tümünü Seç/Kaldır</strong></div>
-            ${relevantServices.sort((a, b) => a.name.localeCompare(b.name)).map(s => {
-            const sId = Object.keys(AppState.services).find(k => AppState.services[k] === s);
-            return `
-                <div class="dropdown-option ${AppState.filters.selectedHizmetler.has(sId) ? 'selected' : ''}" 
-                     onclick="Filters.toggleHizmet('${sId}', event)">
-                    <span>${s.name}</span>
-                </div>
-            `}).join('')}
-        `;
+        if (hMenu) {
+            hMenu.innerHTML = `
+                <div class="dropdown-option" data-action="toggle-all-hizmet"><strong>Tümünü Seç/Kaldır</strong></div>
+                ${relevantServices.sort((a, b) => a.name.localeCompare(b.name)).map(s => {
+                const sId = Object.keys(AppState.services).find(k => AppState.services[k] === s);
+                return `
+                    <div class="dropdown-option ${AppState.filters.selectedHizmetler.has(sId) ? 'selected' : ''}" 
+                         data-hizmet-id="${escapeForHtml(sId)}">
+                        <span>${s.name}</span>
+                    </div>
+                `}).join('')}
+            `;
+        }
+
         // Show total when none selected (tümü seçili)
         const hizmetCount = AppState.filters.selectedHizmetler.size === 0 ? relevantServices.length : AppState.filters.selectedHizmetler.size;
-        document.getElementById('main-hizmet-count').textContent = hizmetCount;
+        const hizmetCountEl = document.getElementById('main-hizmet-count');
+        if (hizmetCountEl) hizmetCountEl.textContent = hizmetCount;
     },
 
     toggleMudurluk(m, e) {
