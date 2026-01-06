@@ -1,0 +1,117 @@
+/* Canvas & Grid System */
+
+#main-container {
+    background-color: var(--muted);
+    position: relative;
+    overflow: hidden;
+    touch-action: none;
+    /* Prevent browser default touch actions */
+}
+
+#chart-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-origin: 0 0;
+    /* Zoom from top-left, adjusted by generic pan/zoom logic */
+    will-change: transform;
+}
+
+.grid-background {
+    background-size: 20px 20px;
+    background-image:
+        linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
+    width: 100%;
+    height: 100%;
+}
+
+/* Interaction States */
+#main-container.panning {
+    cursor: grabbing;
+}
+
+#main-container.dragging-node {
+    cursor: move;
+}
+
+/* Toolbar & Overlay Buttons */
+.toolbar-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--secondary-foreground);
+}
+
+.toolbar-btn:hover {
+    background: var(--muted);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.toolbar-btn.active {
+    background: var(--accent);
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+/* Wide Toolbar Button (for collapsible menu) */
+.toolbar-btn-wide {
+    width: 100%;
+    padding: 8px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--secondary-foreground);
+    font-size: 12px;
+}
+
+.toolbar-btn-wide:hover {
+    background: var(--muted);
+    color: var(--primary);
+}
+
+.toolbar-btn-wide.active {
+    background: var(--accent);
+    color: var(--primary);
+}
+
+/* Context Menu Button */
+.ctx-menu-btn {
+    width: 100%;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    color: #475569;
+    transition: background 0.15s;
+    text-align: left;
+}
+
+.ctx-menu-btn:hover {
+    background: #f1f5f9;
+}
+
+.ctx-menu-btn.text-red-600 {
+    color: #dc2626;
+}
+
+.ctx-menu-btn.text-red-600:hover {
+    background: #fef2f2;
+}

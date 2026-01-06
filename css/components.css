@@ -1,0 +1,141 @@
+/* Components */
+
+/* Multi-select Dropdown */
+.multi-select-dropdown {
+    position: relative;
+    font-size: 13px;
+}
+
+.dropdown-trigger {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: white;
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--secondary-foreground);
+    transition: all 0.2s;
+}
+
+.dropdown-trigger:hover {
+    background: var(--secondary);
+}
+
+.dropdown-trigger .badge {
+    background: var(--primary);
+    color: white;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    min-width: 20px;
+    text-align: center;
+}
+
+.dropdown-trigger .arrow {
+    font-size: 10px;
+    color: var(--muted-foreground);
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 4px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    width: 260px;
+    max-height: 400px;
+    overflow-y: auto;
+    z-index: 100;
+    display: none;
+    padding: 4px;
+}
+
+.dropdown-menu.open {
+    display: block;
+}
+
+.dropdown-option {
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    border-radius: 4px;
+    color: var(--foreground);
+    font-weight: 500;
+}
+
+.dropdown-option:hover {
+    background: var(--secondary);
+}
+
+.dropdown-option.selected {
+    background: var(--accent);
+    color: var(--primary);
+}
+
+/* Mini variant for modal filters */
+.multi-select-dropdown.mini {
+    font-size: 11px;
+}
+
+.multi-select-dropdown.mini .dropdown-trigger {
+    padding: 4px 8px;
+    gap: 4px;
+}
+
+.multi-select-dropdown.mini .badge {
+    font-size: 9px;
+    padding: 1px 5px;
+    min-width: 16px;
+}
+
+.multi-select-dropdown.mini .dropdown-menu {
+    width: 180px;
+    max-height: 280px;
+}
+
+/* Context Menu */
+.context-menu {
+    position: fixed;
+    z-index: 9999;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    padding: 4px;
+    display: none;
+    min-width: 180px;
+}
+
+.context-menu.show {
+    display: block;
+}
+
+.context-menu-item {
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 13px;
+    color: var(--secondary-foreground);
+}
+
+.context-menu-item:hover {
+    background: var(--accent);
+    color: var(--primary);
+}
+
+.context-menu-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 4px 0;
+}

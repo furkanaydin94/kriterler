@@ -1,0 +1,371 @@
+/* Node Styles - Premium Minimal Design */
+
+/* Base Card */
+.chart-card {
+    position: absolute;
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    padding: 0;
+    width: 260px;
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    user-select: none;
+    backdrop-filter: blur(8px);
+}
+
+.chart-card:hover {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    border-color: #3b82f6;
+    transform: translateY(-2px);
+    z-index: 20;
+}
+
+/* Node Action Buttons (visible on hover) */
+.node-actions {
+    position: absolute;
+    top: -8px;
+    left: -8px;
+    display: flex;
+    gap: 2px;
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 50;
+}
+
+.chart-card:hover .node-actions {
+    opacity: 1;
+}
+
+.node-action-btn {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.15s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.node-action-btn:hover {
+    background: #f1f5f9;
+    transform: scale(1.1);
+}
+
+.node-action-btn.delete:hover {
+    background: #fef2f2;
+    border-color: #fecaca;
+}
+
+.chart-card.dragging {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    transform: scale(1.02);
+    opacity: 0.95;
+    z-index: 100;
+}
+
+.chart-card.selected {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+}
+
+.chart-card.highlight {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2), 0 10px 40px rgba(59, 130, 246, 0.15);
+}
+
+.chart-card.dimmed {
+    opacity: 0.35;
+    filter: grayscale(100%);
+}
+
+/* Multi-select styles */
+.chart-card.multi-selected {
+    border-color: #f59e0b;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3), 0 10px 25px rgba(245, 158, 11, 0.15);
+}
+
+.chart-card.selection-preview {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+/* Node Header - Process Box */
+.node-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #f1f5f9;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: -0.01em;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-radius: 14px 14px 0 0;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.node-body {
+    padding: 14px 20px;
+    min-height: 50px;
+    background: #fafbfc;
+    border-radius: 0 0 14px 14px;
+}
+
+/* ========== HUB NODE (YÖNTEM - Circle) ========== */
+.chart-card.hub-node {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid #94a3b8;
+    text-align: center;
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: 0.05em;
+    color: #475569;
+    padding: 15px;
+    background: linear-gradient(145deg, #ffffff 0%, #f1f5f9 100%);
+    box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.08),
+        inset 0 -2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.chart-card.hub-node:hover {
+    border-color: #3b82f6;
+    box-shadow:
+        0 15px 40px rgba(59, 130, 246, 0.15),
+        0 0 0 4px rgba(59, 130, 246, 0.1);
+    transform: translateY(-3px) scale(1.02);
+}
+
+.hub-node .node-header {
+    background: transparent;
+    border: none;
+    padding: 0;
+    justify-content: center;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.hub-node .node-body {
+    display: none;
+}
+
+/* ========== METHOD NODE (Filtre Kutusu) ========== */
+.chart-card.method-node {
+    width: 200px;
+    cursor: pointer;
+    border-left: 4px solid #3b82f6;
+    border-radius: 4px 16px 16px 4px;
+    background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+}
+
+.method-node .node-header {
+    padding: 14px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    border-radius: 0 14px 0 0;
+    background: transparent;
+    border-bottom: none;
+}
+
+.method-node .node-body {
+    display: none;
+}
+
+.chart-card.method-node:hover {
+    border-left-color: #2563eb;
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.2);
+}
+
+.method-node.active {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    border-left-color: #1d4ed8;
+    border-color: #3b82f6;
+}
+
+.method-node.active .node-header {
+    color: #1e40af;
+    font-weight: 700;
+}
+
+/* ========== CONNECTION POINTS ========== */
+.connection-point {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+    border: 2px solid white;
+    border-radius: 50%;
+    cursor: crosshair;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 30;
+    opacity: 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.chart-card:hover .connection-point,
+body.connecting-mode .connection-point {
+    opacity: 1;
+}
+
+.connection-point:hover {
+    transform: scale(1.5);
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3), 0 4px 8px rgba(59, 130, 246, 0.3);
+}
+
+.connection-point.top {
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.connection-point.bottom {
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.connection-point.left {
+    left: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.connection-point.right {
+    right: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.connection-point.top:hover {
+    transform: translateX(-50%) scale(1.5);
+}
+
+.connection-point.bottom:hover {
+    transform: translateX(-50%) scale(1.5);
+}
+
+.connection-point.left:hover {
+    transform: translateY(-50%) scale(1.5);
+}
+
+.connection-point.right:hover {
+    transform: translateY(-50%) scale(1.5);
+}
+
+/* Service Tags */
+.service-list-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.service-tag {
+    font-size: 11px;
+    padding: 4px 10px;
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    border-radius: 20px;
+    color: #475569;
+    font-weight: 500;
+    border: none;
+}
+
+.service-count-badge {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 8px;
+    display: inline-block;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+/* ========== EXPANDABLE SERVICE LIST ========== */
+.service-list-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.service-total-badge {
+    background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 16px;
+    border-radius: 20px;
+    box-shadow: 0 2px 6px rgba(13, 148, 136, 0.3);
+    text-align: center;
+}
+
+.service-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    width: 100%;
+}
+
+.service-tag {
+    font-size: 11px;
+    padding: 5px 10px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    color: #0891b2;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+    cursor: default;
+    transition: all 0.15s ease;
+}
+
+.service-tag:hover {
+    background: #f0fdfa;
+    border-color: #0891b2;
+    transform: scale(1.02);
+}
+
+.service-toggle-btn {
+    background: transparent;
+    border: none;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 4px 8px;
+    margin-top: 4px;
+    transition: color 0.15s;
+}
+
+.service-toggle-btn:hover {
+    color: #0891b2;
+}
+
+/* Node Status Dot (for header) */
+.node-status-dot {
+    width: 8px;
+    height: 8px;
+    background: #0d9488;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 6px;
+}
